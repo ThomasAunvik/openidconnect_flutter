@@ -15,6 +15,19 @@ class OpenIdConnectAndroidiOS {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
+        final webViewController = flutterWebView.WebViewController()
+          ..setJavaScriptMode(flutterWebView.JavaScriptMode.unrestricted)
+          ..setNavigationDelegate(flutterWebView.NavigationDelegate(
+            onPageFinished: (url) {
+              if (url.startsWith(redirectUrl)) {
+                Navigator.pop(dialogContext, url);
+              }
+            },
+          ))
+          ..loadRequest(
+            Uri.parse(authorizationUrl),
+          );
+
         return AlertDialog(
           actions: [
             IconButton(
@@ -27,14 +40,8 @@ class OpenIdConnectAndroidiOS {
                 min(popupWidth.toDouble(), MediaQuery.of(context).size.width),
             height:
                 min(popupHeight.toDouble(), MediaQuery.of(context).size.height),
-            child: flutterWebView.WebView(
-              javascriptMode: flutterWebView.JavascriptMode.unrestricted,
-              initialUrl: authorizationUrl,
-              onPageFinished: (url) {
-                if (url.startsWith(redirectUrl)) {
-                  Navigator.pop(dialogContext, url);
-                }
-              },
+            child: flutterWebView.WebViewWidget(
+              controller: webViewController,
             ),
           ),
           title: Text(title),
